@@ -189,8 +189,11 @@ def format_time_stats(stats: Optional[Tuple[datetime, datetime, float, str]]) ->
 def main(gpx_file: str, map_file: str):
     parser = GpxParser(gpx_file)
     segments = parser.parse_or_split_segments()
-    points = [p for segment in segments for p in segment]
 
+    print(f"Liczba segmentów: {len(segments)}")
+    
+    points = [p for segment in segments for p in segment]
+    
     if not points:
         print("Brak punktów w pliku GPX.")
         return
