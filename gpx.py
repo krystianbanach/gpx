@@ -305,10 +305,6 @@ def main(gpx_file):
 
     all_points = [pt for route_segment in route_segments for pt in route_segment]
 
-    if not all_points:
-        print("Brak punktów w pliku GPX.")
-        return
-
     validate_gpx(all_points)
 
     route_stats = compute_route_stats(all_points)
