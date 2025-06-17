@@ -71,7 +71,7 @@ class GpxParser:
                 print(f"Pominięto punkt GPX z błędem: {e}")
         return parsed_points
 
-def split_track_into_segments(track_points, max_gap_seconds=60):
+def split_track_into_segments(track_points, max_gap_seconds=MAX_GAP_SECONDS):
     if not track_points:
         return []
 
