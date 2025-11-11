@@ -7,6 +7,7 @@ from matplotlib import colormaps
 from matplotlib import colors as mcolors
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 MAX_GAP_SECONDS = 60
 MAX_ELEVATION_JUMP_M = 4     
@@ -136,7 +137,7 @@ def compute_time_stats(track_points):
 
     return (start_time, end_time, avg_speed, pace)
 
-# ==== DETEKCJA ANOMALII ====
+#DETEKCJA ANOMALII
 def find_position_jumps(track_points):
     return [i for i in range(1, len(track_points))
             if track_points[i - 1].distance_to(track_points[i]) * 1000 > MAX_DISTANCE_JUMP_M]
@@ -289,15 +290,32 @@ def validate_gpx(points):
         raise ValueError("Plik GPX zawiera za mało punktów.")
     if all(pt.time is None for pt in points):
         raise ValueError("Brak danych czasowych w pliku GPX.")
+    
+#NumPy
+def coords_to_numpy_from_points(points, dtype=np.float64):
+    n = len(points)
+    X = np.empty((n, 3), dtype=dtype)
+    for i, p in enumerate(points):
+        X[i, 0] = float(p.latitude)
+        X[i, 1] = float(p.longitude)
+        X[i, 2] = float(p.elevation)
+    return X
+
+def coords_segments_to_numpy_list(route_segments, dtype=np.float64):
+    seg_arrays = []
+    for seg in route_segments:
+        n = len(seg)
+        X = np.empty((n, 3), dtype=dtype)
+        for i, p in enumerate(seg):
+            X[i, 0] = float(p.latitude)
+            X[i, 1] = float(p.longitude)
+            X[i, 2] = float(p.elevation)
+        seg_arrays.append(X)
+    return seg_arrays
 
 def main(gpx_file):
     output_dir = "wyniki"
     os.makedirs(output_dir, exist_ok=True)
-
-    base_name = os.path.splitext(os.path.basename(gpx_file))[0]
-    map_file = os.path.join(output_dir, f"{base_name}_map.html")
-    profile_file = os.path.join(output_dir, f"{base_name}_elevation_profile.png")
-
     parser = GpxParser(gpx_file)
     route_segments = parser.parse_or_split_segments()
 
@@ -305,24 +323,27 @@ def main(gpx_file):
 
     all_points = [pt for route_segment in route_segments for pt in route_segment]
 
-    validate_gpx(all_points)
+    # validate_gpx(all_points)
+    # route_stats = compute_route_stats(all_points)
+    # time_stats = compute_time_stats(all_points)
+    # print(format_route_stats(route_stats))
+    # print(format_time_stats(time_stats))
+    # save_stats_text(base_name, output_dir, route_stats, time_stats, all_points)
+    # base_name = os.path.splitext(os.path.basename(gpx_file))[0]
+    # plot_elevation_profile(all_points, os.path.join(output_dir, f"{base_name}_elevation_time.png"), by="time")
+    # plot_elevation_profile(all_points, os.path.join(output_dir, f"{base_name}_elevation_distance.png"), by="distance")
+    # anomalies = detect_anomalies(all_points)
+    # labeled_anomaly_points = get_anomaly_points_with_type(anomalies, all_points)
+    # plot_route_on_map(route_segments, map_file, labeled_anomaly_points)
+    coords_all = coords_to_numpy_from_points(all_points)
+    print(f"shape={coords_all.shape} (kolumny: lat, lon, ele)")
+    print(coords_all[:3])
 
-    route_stats = compute_route_stats(all_points)
-    time_stats = compute_time_stats(all_points)
-
-    print(format_route_stats(route_stats))
-    print(format_time_stats(time_stats))
-
-    save_stats_text(base_name, output_dir, route_stats, time_stats, all_points)
-    plot_elevation_profile(all_points, os.path.join(output_dir, f"{base_name}_elevation_time.png"), by="time")
-    plot_elevation_profile(all_points, os.path.join(output_dir, f"{base_name}_elevation_distance.png"), by="distance")
-
-    anomalies = detect_anomalies(all_points)
-    labeled_anomaly_points = get_anomaly_points_with_type(anomalies, all_points)
-
-    plot_route_on_map(route_segments, map_file, labeled_anomaly_points)
+    coords_by_segment = coords_segments_to_numpy_list(route_segments)
+    print(f"Liczba segmentów: {len(coords_by_segment)}; shape: ", [x.shape for x in coords_by_segment])
+    preview = [x2[:2].tolist() for x2 in coords_by_segment]
+    print(preview)
 
 if __name__ == "__main__":
-    for infile in ["bieg_5km_bs_2.gpx","bieg_5km_zs.gpx"]:
+    for infile in ["bieg_5km_zs.gpx"]:
         main(infile)
-
