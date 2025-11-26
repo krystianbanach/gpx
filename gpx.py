@@ -8,6 +8,7 @@ from matplotlib import colors as mcolors
 import matplotlib.pyplot as plt
 import os
 import numpy as np
+import time
 
 MAX_GAP_SECONDS = 60
 MAX_ELEVATION_JUMP_M = 4     
@@ -115,6 +116,22 @@ def compute_route_stats(track_points):
         "elevation_gain": elevation_gain,
         "elevation_loss": elevation_loss
     }
+def elevation_gain_loss(track_points):
+    elevation_gain = 0.0
+    elevation_loss = 0.0
+
+    for prev_point, curr_point in zip(track_points[:-1], track_points[1:]):
+        if prev_point.elevation is None or curr_point.elevation is None:
+            continue
+
+        diff = curr_point.elevation - prev_point.elevation
+
+        if diff > 0:
+            elevation_gain += diff
+        else:
+            elevation_loss += -diff
+
+    return float(elevation_gain), float(elevation_loss)
 
 def compute_time_stats(track_points):
     time_values = [pt.time for pt in track_points if pt.time]
@@ -174,8 +191,8 @@ def get_anomaly_points_with_type(anomalies, all_points):
 def format_route_stats(stats):
     return (
         f" Dystans całkowity: {stats['total_distance']:.2f} km\n"
-        f" Suma podejść: {stats['elevation_gain']:.0f} m\n"
-        f" Suma zejść: {stats['elevation_loss']:.0f} m"
+        f" Suma podejść: {stats['elevation_gain']:.2f} m\n"
+        f" Suma zejść: {stats['elevation_loss']:.2f} m"
     )
 
 def format_time_stats(stats):
@@ -313,13 +330,42 @@ def coords_segments_to_numpy_list(route_segments, dtype=np.float64):
         seg_arrays.append(X)
     return seg_arrays
 
+def elevation_gain_loss_numpy(coords):
+
+    ele = coords[:, 2].astype(float)
+
+    diff = np.diff(ele) 
+
+    elevation_gain = float(diff[diff > 0].sum())
+    elevation_loss = float(-diff[diff < 0].sum())
+
+    return elevation_gain, elevation_loss
+
+def compare_elevation_gain_loss(all_points, coords_all, n = 1000):
+
+    t0 = time.perf_counter()
+    for _ in range(n):
+        elevation_gain_loss(all_points)
+    t1 = time.perf_counter()
+    avg_list_time = (t1 - t0) * 1000.0 / n
+
+    t2 = time.perf_counter()
+    for _ in range(n):
+        elevation_gain_loss_numpy(coords_all)
+    t3 = time.perf_counter()
+    avg_numpy_time = (t3 - t2) * 1000.0 / n
+
+    speedup = avg_list_time / avg_numpy_time 
+
+    return avg_list_time, avg_numpy_time, speedup
+
 def main(gpx_file):
     output_dir = "wyniki"
     os.makedirs(output_dir, exist_ok=True)
     parser = GpxParser(gpx_file)
     route_segments = parser.parse_or_split_segments()
 
-    print(f"Liczba segmentów: {len(route_segments)}")
+    # print(f"Liczba segmentów: {len(route_segments)}")
 
     all_points = [pt for route_segment in route_segments for pt in route_segment]
 
@@ -335,14 +381,18 @@ def main(gpx_file):
     # anomalies = detect_anomalies(all_points)
     # labeled_anomaly_points = get_anomaly_points_with_type(anomalies, all_points)
     # plot_route_on_map(route_segments, map_file, labeled_anomaly_points)
+    route_stats = compute_route_stats(all_points)
+    # print(format_route_stats(route_stats))
     coords_all = coords_to_numpy_from_points(all_points)
-    print(f"shape={coords_all.shape} (kolumny: lat, lon, ele)")
-    print(coords_all[:3])
+    gain, loss = elevation_gain_loss_numpy(coords_all)
+    # print('Suma podejść:', gain,'Suma zejść:', loss)
+    
+    
+    avg_list_time, avg_numpy_time, speedup = compare_elevation_gain_loss(all_points, coords_all, n=1000)
 
-    coords_by_segment = coords_segments_to_numpy_list(route_segments)
-    print(f"Liczba segmentów: {len(coords_by_segment)}; shape: ", [x.shape for x in coords_by_segment])
-    preview = [x2[:2].tolist() for x2 in coords_by_segment]
-    print(preview)
+    print(f"LISTA : {avg_list_time:.4f} ms")
+    print(f"NUMPY : {avg_numpy_time:.4f} ms")
+    print(f"NumPy jest {speedup:.2f}x szybsze")
 
 if __name__ == "__main__":
     for infile in ["bieg_5km_zs.gpx"]:
