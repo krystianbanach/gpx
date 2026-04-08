@@ -6,18 +6,17 @@ from gpx_analysis import compute_route_stats_segments, compute_time_stats_segmen
 from gpx_report import build_full_report, save_stats_text
 
 
-def flatten_segments(route_segments):
+def collect_all_points(route_segments):
     points = []
     for segment in route_segments:
         points.extend(segment)
     return points
 
 
-
 def main(gpx_file):
     parser = GpxParser(gpx_file)
-    route_segments = parser.parse_or_split_segments()
-    all_points = flatten_segments(route_segments)
+    route_segments = parser.load_route_segments()
+    all_points = collect_all_points(route_segments)
     validate_gpx(all_points)
 
     route_stats = compute_route_stats_segments(route_segments)

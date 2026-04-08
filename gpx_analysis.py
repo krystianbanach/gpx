@@ -93,10 +93,10 @@ def compute_time_stats(track_points):
 
 def compute_route_stats_segments(route_segments):
     total = {'total_distance': 0.0, 'elevation_gain': 0.0, 'elevation_loss': 0.0}
-    for seg in route_segments:
-        if not seg or len(seg) < 2:
+    for segment in route_segments:
+        if not segment or len(segment) < 2:
             continue
-        stats = compute_route_stats(seg)
+        stats = compute_route_stats(segment)
         total['total_distance'] += stats['total_distance']
         total['elevation_gain'] += stats['elevation_gain']
         total['elevation_loss'] += stats['elevation_loss']
@@ -104,15 +104,15 @@ def compute_route_stats_segments(route_segments):
 
 
 def compute_time_stats_segments(route_segments):
-    segs = [seg for seg in route_segments if seg and seg[0].time and seg[-1].time]
-    if not segs:
+    segments_with_time = [segment for segment in route_segments if segment and segment[0].time and segment[-1].time]
+    if not segments_with_time:
         return None
 
-    start_time = segs[0][0].time
-    end_time = segs[-1][-1].time
+    start_time = segments_with_time[0][0].time
+    end_time = segments_with_time[-1][-1].time
     elapsed_sec = (end_time - start_time).total_seconds()
-    moving_sec = sum((seg[-1].time - seg[0].time).total_seconds() for seg in segs)
-    dist_km = compute_route_stats_segments(route_segments)['total_distance']
+    moving_sec = sum((segment[-1].time - segment[0].time).total_seconds() for segment in segments_with_time)
+    distance_km = compute_route_stats_segments(route_segments)['total_distance']
 
     def pace(seconds, km):
         if km <= 0 or seconds <= 0:
@@ -126,23 +126,23 @@ def compute_time_stats_segments(route_segments):
         'elapsed_sec': elapsed_sec,
         'moving_sec': moving_sec,
         'stopped_sec': max(0.0, elapsed_sec - moving_sec),
-        'distance_km': dist_km,
-        'avg_speed_elapsed': dist_km / (elapsed_sec / 3600) if elapsed_sec > 0 else 0.0,
-        'avg_speed_moving': dist_km / (moving_sec / 3600) if moving_sec > 0 else 0.0,
-        'pace_elapsed': pace(elapsed_sec, dist_km),
-        'pace_moving': pace(moving_sec, dist_km),
+        'distance_km': distance_km,
+        'avg_speed_elapsed': distance_km / (elapsed_sec / 3600) if elapsed_sec > 0 else 0.0,
+        'avg_speed_moving': distance_km / (moving_sec / 3600) if moving_sec > 0 else 0.0,
+        'pace_elapsed': pace(elapsed_sec, distance_km),
+        'pace_moving': pace(moving_sec, distance_km),
     }
 
 
 def elevation_gain_loss_segments(route_segments):
     gain = 0.0
     loss = 0.0
-    for seg in route_segments:
-        if len(seg) < 2:
+    for segment in route_segments:
+        if len(segment) < 2:
             continue
-        seg_gain, seg_loss = elevation_gain_loss(seg)
-        gain += seg_gain
-        loss += seg_loss
+        segment_gain, segment_loss = elevation_gain_loss(segment)
+        gain += segment_gain
+        loss += segment_loss
     return gain, loss
 
 

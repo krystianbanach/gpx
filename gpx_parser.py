@@ -24,7 +24,7 @@ class GpxParser:
         except Exception as e:
             raise ValueError(f"Nie udało się wczytać pliku GPX: {e}")
 
-    def parse_or_split_segments(self, max_gap_seconds=None):
+    def load_route_segments(self, max_gap_seconds=None):
         if max_gap_seconds is None:
             max_gap_seconds = MAX_GAP_SECONDS
 

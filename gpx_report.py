@@ -7,14 +7,12 @@ from gpx_analysis import (
 from gpx_parser import MAX_DISTANCE_JUMP_M, MAX_ELEVATION_JUMP_M
 
 
-
 def format_route_stats(stats):
     return (
         f" Dystans całkowity: {stats['total_distance']:.2f} km\n"
         f" Suma podejść: {stats['elevation_gain']:.2f} m\n"
         f" Suma zejść: {stats['elevation_loss']:.2f} m"
     )
-
 
 
 def format_time_stats(stats):
@@ -31,7 +29,6 @@ def format_time_stats(stats):
     )
 
 
-
 def format_time_stats_segments(stats):
     if not stats:
         return 'Brak wystarczających danych czasowych.'
@@ -45,7 +42,6 @@ def format_time_stats_segments(stats):
         f" Śr. prędkość (elapsed): {stats['avg_speed_elapsed']:.2f} km/h | tempo: {stats['pace_elapsed']}\n"
         f" Śr. prędkość (moving):  {stats['avg_speed_moving']:.2f} km/h | tempo: {stats['pace_moving']}"
     )
-
 
 
 def format_segments_summary(route_segments):
@@ -71,7 +67,6 @@ def format_segments_summary(route_segments):
     return '\n'.join(lines)
 
 
-
 def format_gpx_analysis(track_points):
     lines = []
     lines.append('ANALIZA DANYCH GPX')
@@ -81,7 +76,6 @@ def format_gpx_analysis(track_points):
     lines.append(f'Skoki wysokości > {MAX_ELEVATION_JUMP_M} m: {count_elevation_jumps(track_points)}')
     lines.append(f'Skoki pozycji > {MAX_DISTANCE_JUMP_M} m: {count_position_jumps(track_points)}')
     return '\n'.join(lines)
-
 
 
 def build_full_report(route_stats, time_stats, route_segments, all_points):
@@ -96,7 +90,6 @@ def build_full_report(route_stats, time_stats, route_segments, all_points):
     parts.append('')
     parts.append(format_gpx_analysis(all_points))
     return '\n'.join(parts)
-
 
 
 def save_stats_text(base_name, output_dir, report_text):
