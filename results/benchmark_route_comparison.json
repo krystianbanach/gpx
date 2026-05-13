@@ -1,0 +1,158 @@
+[
+    {
+        "trasa_referencyjna": "data/bieg_1000.gpx",
+        "trasa_zawodnika": "data/bieg_1000_zawodnik.gpx",
+        "liczba_punktow_referencji": 1000,
+        "liczba_punktow_zawodnika": 1000,
+        "liczba_sprawdzen_punkt_segment": 999000,
+        "operacja": "porownanie_tras",
+        "liczba_warmupow": 0,
+        "liczba_pomiarow": 2,
+        "warmup_numba": true,
+        "sredni_czas_lista": 0.2560440765000749,
+        "sredni_czas_numpy": 0.06104332450013317,
+        "sredni_czas_numba": 0.0046865575004630955,
+        "czasy_lista": [
+            0.26162921600007394,
+            0.2504589370000758
+        ],
+        "czasy_numpy": [
+            0.059774109000500175,
+            0.06231253999976616
+        ],
+        "czasy_numba": [
+            0.00478292300067551,
+            0.004590192000250681
+        ]
+    },
+    {
+        "trasa_referencyjna": "data/bieg_2000.gpx",
+        "trasa_zawodnika": "data/bieg_2000_zawodnik.gpx",
+        "liczba_punktow_referencji": 2000,
+        "liczba_punktow_zawodnika": 2000,
+        "liczba_sprawdzen_punkt_segment": 3998000,
+        "operacja": "porownanie_tras",
+        "liczba_warmupow": 0,
+        "liczba_pomiarow": 2,
+        "warmup_numba": true,
+        "sredni_czas_lista": 0.987486376000561,
+        "sredni_czas_numpy": 0.2317747800007055,
+        "sredni_czas_numba": 0.02254283599995688,
+        "czasy_lista": [
+            0.9429441690008389,
+            1.032028583000283
+        ],
+        "czasy_numpy": [
+            0.26925028000005113,
+            0.19429928000135988
+        ],
+        "czasy_numba": [
+            0.01737072600008105,
+            0.027714945999832707
+        ]
+    },
+    {
+        "trasa_referencyjna": "data/bieg_5000.gpx",
+        "trasa_zawodnika": "data/bieg_5000_zawodnik.gpx",
+        "liczba_punktow_referencji": 5000,
+        "liczba_punktow_zawodnika": 5000,
+        "liczba_sprawdzen_punkt_segment": 24995000,
+        "operacja": "porownanie_tras",
+        "liczba_warmupow": 0,
+        "liczba_pomiarow": 2,
+        "warmup_numba": true,
+        "sredni_czas_lista": 6.2320078299999295,
+        "sredni_czas_numpy": 0.8578671085006135,
+        "sredni_czas_numba": 0.1524057990000074,
+        "czasy_lista": [
+            6.262829078999857,
+            6.201186581000002
+        ],
+        "czasy_numpy": [
+            0.842393497001467,
+            0.87334071999976
+        ],
+        "czasy_numba": [
+            0.14658281599986367,
+            0.1582287820001511
+        ]
+    },
+    {
+        "trasa_referencyjna": "data/bieg_10000_1s.gpx",
+        "trasa_zawodnika": "data/bieg_10000_1s_zawodnik.gpx",
+        "liczba_punktow_referencji": 10000,
+        "liczba_punktow_zawodnika": 10000,
+        "liczba_sprawdzen_punkt_segment": 99990000,
+        "operacja": "porownanie_tras",
+        "liczba_warmupow": 0,
+        "liczba_pomiarow": 2,
+        "warmup_numba": true,
+        "sredni_czas_lista": 24.277050023500124,
+        "sredni_czas_numpy": 6.732764234499882,
+        "sredni_czas_numba": 0.5371217880001495,
+        "czasy_lista": [
+            24.49652512800094,
+            24.057574918999308
+        ],
+        "czasy_numpy": [
+            6.99684771200009,
+            6.4686807569996745
+        ],
+        "czasy_numba": [
+            0.5093086890010454,
+            0.5649348869992536
+        ]
+    },
+    {
+        "trasa_referencyjna": "data/bieg_25000_1s.gpx",
+        "trasa_zawodnika": "data/bieg_25000_1s_zawodnik.gpx",
+        "liczba_punktow_referencji": 25000,
+        "liczba_punktow_zawodnika": 25000,
+        "liczba_sprawdzen_punkt_segment": 624975000,
+        "operacja": "porownanie_tras",
+        "liczba_warmupow": 0,
+        "liczba_pomiarow": 2,
+        "warmup_numba": true,
+        "sredni_czas_lista": 149.34702242999992,
+        "sredni_czas_numpy": 37.524193439000555,
+        "sredni_czas_numba": 3.0711663290003344,
+        "czasy_lista": [
+            150.46015386399995,
+            148.2338909959999
+        ],
+        "czasy_numpy": [
+            37.61412279900105,
+            37.43426407900006
+        ],
+        "czasy_numba": [
+            3.04049789200144,
+            3.1018347659992287
+        ]
+    },
+    {
+        "trasa_referencyjna": "data/bieg_50000_1s.gpx",
+        "trasa_zawodnika": "data/bieg_50000_1s_zawodnik.gpx",
+        "liczba_punktow_referencji": 50000,
+        "liczba_punktow_zawodnika": 50000,
+        "liczba_sprawdzen_punkt_segment": 2499950000,
+        "operacja": "porownanie_tras",
+        "liczba_warmupow": 0,
+        "liczba_pomiarow": 2,
+        "warmup_numba": true,
+        "sredni_czas_lista": 648.3994920824998,
+        "sredni_czas_numpy": 156.7017772650006,
+        "sredni_czas_numba": 11.633316256499711,
+        "czasy_lista": [
+            653.1824610349995,
+            643.6165231300001
+        ],
+        "czasy_numpy": [
+            156.68206090600142,
+            156.72149362399978
+        ],
+        "czasy_numba": [
+            11.577397959999871,
+            11.689234552999551
+        ]
+    }
+]
