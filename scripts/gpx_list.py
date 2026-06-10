@@ -2,7 +2,7 @@ import math
 from pyproj import Transformer
 
 
-R = 6371000
+R = 6371000.0
 
 
 TRANSFORMER_2180 = Transformer.from_crs(
@@ -80,27 +80,32 @@ def elevation_gain_loss(elevations):
 def route_to_euclidean(latitudes, longitudes):
     """
     Przekształca współrzędne GPS z WGS84 do układu metrycznego EPSG:2180.
-    Zwraca współrzędne x, y w metrach.
+    Zwraca dwie listy: xs i ys.
     """
-    points_xy = []
+    xs = []
+    ys = []
 
     for lat, lon in zip(latitudes, longitudes):
         x, y = TRANSFORMER_2180.transform(lon, lat)
-        points_xy.append((x, y))
+        xs.append(x)
+        ys.append(y)
 
-    return points_xy
+    return xs, ys
 
 
 
-def build_segments(points_xy):
+def build_segments(xs, ys):
     """
     Buduje segmenty trasy referencyjnej z kolejnych punktów w układzie metrycznym.
-    Zwraca opis odcinków potrzebny do obliczania odległości punkt-odcinek.
     """
     segments = []
-    for i in range(1, len(points_xy)):
-        ax, ay = points_xy[i - 1]
-        bx, by = points_xy[i]
+
+    for i in range(1, len(xs)):
+        ax = xs[i - 1]
+        ay = ys[i - 1]
+
+        bx = xs[i]
+        by = ys[i]
 
         abx = bx - ax
         aby = by - ay
@@ -114,9 +119,8 @@ def build_segments(points_xy):
 def distance_to_segments(px, py, segments):
     """
     Oblicza najmniejszą odległość punktu od segmentów trasy referencyjnej.
-    Zwraca najkrótszą odległość w metrach.
     """
-    min_distance_squared = None
+    min_dist2 = None
 
     for ax, ay, bx, by, abx, aby, ab_len2 in segments:
         apx = px - ax
@@ -141,36 +145,32 @@ def distance_to_segments(px, py, segments):
                 dx = px - closest_x
                 dy = py - closest_y
 
-        distance_squared = dx * dx + dy * dy
+        dist2 = dx * dx + dy * dy
 
-        if min_distance_squared is None or distance_squared < min_distance_squared:
-            min_distance_squared = distance_squared
+        if min_dist2 is None or dist2 < min_dist2:
+            min_dist2 = dist2
 
-    return math.sqrt(min_distance_squared)
+    return math.sqrt(min_dist2)
 
 
 def compare_routes(
-    reference_lat,
-    reference_lon,
-    runner_lat,
-    runner_lon,
+    reference_latitudes,
+    reference_longitudes,
+    runner_latitudes,
+    runner_longitudes,
     thresholds_m=(5.0, 10.0, 20.0),
 ):
-    """
-    Porównuje trasę zawodnika z trasą referencyjną na podstawie odległości punktów od segmentów.
-    Zwraca średnią odległość, maksymalną odległość oraz procent punktów w zadanych progach.
-    """
-    reference_xy = route_to_euclidean(
-        reference_lat,
-        reference_lon,
+    reference_xs, reference_ys = route_to_euclidean(
+        reference_latitudes,
+        reference_longitudes,
     )
 
-    runner_xy = route_to_euclidean(
-        runner_lat,
-        runner_lon,
+    runner_xs, runner_ys = route_to_euclidean(
+        runner_latitudes,
+        runner_longitudes,
     )
 
-    segments = build_segments(reference_xy)
+    segments = build_segments(reference_xs, reference_ys)
 
     total_distance_from_route = 0.0
     max_distance = 0.0
@@ -180,8 +180,12 @@ def compare_routes(
     for threshold in thresholds_m:
         threshold_counts[threshold] = 0
 
-    for px, py in runner_xy:
-        distance = distance_to_segments(px, py, segments)
+    for i in range(len(runner_xs)):
+        distance = distance_to_segments(
+            runner_xs[i],
+            runner_ys[i],
+            segments,
+        )
 
         total_distance_from_route += distance
 
@@ -192,7 +196,7 @@ def compare_routes(
             if distance <= threshold:
                 threshold_counts[threshold] += 1
 
-    points_count = len(runner_xy)
+    points_count = len(runner_xs)
 
     result = {
         "mean_distance_m": total_distance_from_route / points_count,
@@ -212,50 +216,34 @@ def frechet_distance(
     runner_latitudes,
     runner_longitudes,
 ):
-    """
-    Liczy dyskretną odległość Frécheta dla punktów w układzie metrycznym.
-    """
-
-    reference_xy = route_to_euclidean(
+    reference_xs, reference_ys = route_to_euclidean(
         reference_latitudes,
         reference_longitudes,
     )
 
-    runner_xy = route_to_euclidean(
+    runner_xs, runner_ys = route_to_euclidean(
         runner_latitudes,
         runner_longitudes,
     )
 
-    n = len(reference_xy)
-    m = len(runner_xy)
+    n = len(reference_xs)
+    m = len(runner_xs)
 
     ca = [[0.0 for _ in range(m)] for _ in range(n)]
 
     for i in range(n):
         for j in range(m):
-            ax, ay = reference_xy[i]
-            bx, by = runner_xy[j]
-
-            dx = ax - bx
-            dy = ay - by
+            dx = reference_xs[i] - runner_xs[j]
+            dy = reference_ys[i] - runner_ys[j]
 
             dist2 = dx * dx + dy * dy
 
             if i == 0 and j == 0:
                 ca[i][j] = dist2
-
             elif i == 0:
-                ca[i][j] = max(
-                    ca[i][j - 1],
-                    dist2,
-                )
-
+                ca[i][j] = max(ca[i][j - 1], dist2)
             elif j == 0:
-                ca[i][j] = max(
-                    ca[i - 1][j],
-                    dist2,
-                )
-
+                ca[i][j] = max(ca[i - 1][j], dist2)
             else:
                 ca[i][j] = max(
                     min(

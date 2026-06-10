@@ -2,16 +2,13 @@ import math
 import numpy as np
 from pyproj import Transformer
 
-
 R = 6371000.0
-
 
 TRANSFORMER_2180 = Transformer.from_crs(
     "EPSG:4326",
     "EPSG:2180",
     always_xy=True,
 )
-
 
 def haversine_distance_np(lat1, lon1, lat2, lon2):
     """
@@ -44,9 +41,6 @@ def haversine_total_distance_np(latitudes, longitudes):
     """
     Oblicza całkowity dystans trasy jako sumę odległości między kolejnymi punktami GPS.
     """
-    if len(latitudes) < 2:
-        return 0.0
-
     distances = haversine_distance_np(
         latitudes[:-1],
         longitudes[:-1],
@@ -62,11 +56,7 @@ def elevation_gain_loss_np(elevations):
     Oblicza sumę podejść i zejść na podstawie różnic wysokości między kolejnymi punktami.
     Zwraca elevation_gain i elevation_loss w metrach.
     """
-    if len(elevations) < 2:
-        return 0.0, 0.0
-
     differences = elevations[1:] - elevations[:-1]
-
     elevation_gain = np.sum(differences[differences > 0.0])
     elevation_loss = np.sum(np.abs(differences[differences < 0.0]))
 
@@ -190,7 +180,6 @@ def frechet_distance_np(
     """
     Liczy dyskretną odległość Frécheta dla punktów w układzie metrycznym.
     """
-
     reference_xs, reference_ys = route_to_euclidean_np(
         reference_latitudes,
         reference_longitudes,

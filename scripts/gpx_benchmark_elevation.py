@@ -9,39 +9,39 @@ from gpx_numba import elevation_gain_loss_numba
 
 
 FILES = [
-    "data/bieg_10000_1s.gpx",
-    "data/bieg_25000_1s.gpx",
-    "data/bieg_50000_1s.gpx",
-    "data/bieg_100000_1s.gpx",
-    "data/bieg_500000_1s.gpx",
-    "data/bieg_1000000_1s.gpx",
+    "data/trasa_10000.gpx",
+    "data/trasa_25000.gpx",
+    "data/trasa_50000.gpx",
+    "data/trasa_100000.gpx",
+    "data/trasa_250000.gpx",
+    "data/trasa_500000.gpx",
+    "data/trasa_1000000.gpx",
 ]
 
-OUTPUT_FILE = "results/benchmark_elevation2.json"
+OUTPUT_FILE = "results/benchmark_elevation.json"
 
 WARMUP_RUNS = 3
 MEASURED_RUNS = 10
 
 
-def measure_once(function, *args):
-    start = time.perf_counter()
-    function(*args)
-    return time.perf_counter() - start
-
-
-def measure_repeated(function, *args):
+def measure(function, *args):
     for _ in range(WARMUP_RUNS):
         function(*args)
 
     times = []
+    last_result = None
 
     for _ in range(MEASURED_RUNS):
-        elapsed_time = measure_once(function, *args)
+        start = time.perf_counter()
+        last_result = function(*args)
+        elapsed_time = time.perf_counter() - start
+
         times.append(elapsed_time)
 
     return {
         "czas": sum(times) / len(times),
         "czasy": times,
+        "wynik": last_result,
     }
 
 
@@ -51,20 +51,20 @@ def benchmark(files, output_file=OUTPUT_FILE):
     for file in files:
         print("Pomiar przewyższeń dla pliku:", file)
 
-        _, _, ele, _ = parser_py(file)
-        _, _, ele_np, _ = parser_np(file)
+        _, _, ele = parser_py(file)
+        _, _, ele_np = parser_np(file)
 
-        list_result = measure_repeated(
+        list_result = measure(
             elevation_gain_loss,
             ele,
         )
 
-        numpy_result = measure_repeated(
+        numpy_result = measure(
             elevation_gain_loss_np,
             ele_np,
         )
 
-        numba_result = measure_repeated(
+        numba_result = measure(
             elevation_gain_loss_numba,
             ele_np,
         )

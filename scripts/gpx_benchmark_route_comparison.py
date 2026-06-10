@@ -9,44 +9,42 @@ from gpx_numba import compare_routes_numba
 
 
 ROUTE_PAIRS = [
-    ("data/bieg_1000.gpx","data/bieg_1000_zawodnik.gpx"),
-    ("data/bieg_2000.gpx","data/bieg_2000_zawodnik.gpx"),
-    ("data/bieg_5000.gpx","data/bieg_5000_zawodnik.gpx"),
-    ("data/bieg_10000_1s.gpx","data/bieg_10000_1s_zawodnik.gpx"),
-    ("data/bieg_25000_1s.gpx","data/bieg_25000_1s_zawodnik.gpx"),
-    ("data/bieg_50000_1s.gpx","data/bieg_50000_1s_zawodnik.gpx"),
-    # Uwaga: 100k x 100k może trwać długo w wersji listowej i NumPy.
-    # (
-    #     "data/bieg_100000_1s.gpx",
-    #     "data/bieg_100000_1s_zawodnik.gpx",
-    # ),
+    ("data/trasa_1000.gpx","data/trasa_1000_zawodnik.gpx"),
+    ("data/trasa_2000.gpx","data/trasa_2000_zawodnik.gpx"),
+    ("data/trasa_3000.gpx","data/trasa_3000_zawodnik.gpx"),
+    ("data/trasa_4000.gpx","data/trasa_4000_zawodnik.gpx"),
+    ("data/trasa_5000.gpx","data/trasa_5000_zawodnik.gpx"),
+    ("data/trasa_6000.gpx","data/trasa_6000_zawodnik.gpx"),
+    ("data/trasa_7000.gpx","data/trasa_7000_zawodnik.gpx"),
+    ("data/trasa_8000.gpx","data/trasa_8000_zawodnik.gpx"),
+    ("data/trasa_9000.gpx","data/trasa_9000_zawodnik.gpx"),
+    ("data/trasa_10000.gpx","data/trasa_10000_zawodnik.gpx"),
 ]
 
-OUTPUT_FILE = "results/benchmark_route_comparison3.json"
+OUTPUT_FILE = "results/benchmark_route_comparison.json"
 
-WARMUP_RUNS = 0
-MEASURED_RUNS = 2
-
-
-def measure_once(function, *args):
-    start = time.perf_counter()
-    function(*args)
-    return time.perf_counter() - start
+WARMUP_RUNS = 2
+MEASURED_RUNS = 5
 
 
-def measure_repeated(function, *args):
+def measure(function, *args):
     for _ in range(WARMUP_RUNS):
         function(*args)
 
     times = []
+    last_result = None
 
     for _ in range(MEASURED_RUNS):
-        elapsed_time = measure_once(function, *args)
+        start = time.perf_counter()
+        last_result = function(*args)
+        elapsed_time = time.perf_counter() - start
+
         times.append(elapsed_time)
 
     return {
         "czas": sum(times) / len(times),
         "czasy": times,
+        "wynik": last_result,
     }
 
 
@@ -58,11 +56,11 @@ def benchmark(route_pairs, output_file=OUTPUT_FILE):
         print("  referencja:", reference_file)
         print("  zawodnik:  ", runner_file)
 
-        ref_lat, ref_lon, _, _ = parser_py(reference_file)
-        run_lat, run_lon, _, _ = parser_py(runner_file)
+        ref_lat, ref_lon, _ = parser_py(reference_file)
+        run_lat, run_lon, _ = parser_py(runner_file)
 
-        ref_lat_np, ref_lon_np, _, _ = parser_np(reference_file)
-        run_lat_np, run_lon_np, _, _ = parser_np(runner_file)
+        ref_lat_np, ref_lon_np, _ = parser_np(reference_file)
+        run_lat_np, run_lon_np, _ = parser_np(runner_file)
 
         reference_points = len(ref_lat)
         runner_points = len(run_lat)
@@ -76,7 +74,7 @@ def benchmark(route_pairs, output_file=OUTPUT_FILE):
             run_lon_np[:10],
         )
 
-        list_result = measure_repeated(
+        list_result = measure(
             compare_routes,
             ref_lat,
             ref_lon,
@@ -84,7 +82,7 @@ def benchmark(route_pairs, output_file=OUTPUT_FILE):
             run_lon,
         )
 
-        numpy_result = measure_repeated(
+        numpy_result = measure(
             compare_routes_np,
             ref_lat_np,
             ref_lon_np,
@@ -92,7 +90,7 @@ def benchmark(route_pairs, output_file=OUTPUT_FILE):
             run_lon_np,
         )
 
-        numba_result = measure_repeated(
+        numba_result = measure(
             compare_routes_numba,
             ref_lat_np,
             ref_lon_np,

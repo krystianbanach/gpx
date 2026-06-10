@@ -89,7 +89,6 @@ def route_to_euclidean_numba(latitudes, longitudes):
     Przekształca współrzędne GPS z WGS84 do układu metrycznego EPSG:2180.
     Zwraca współrzędne x, y w metrach.
     """
-
     xs, ys = TRANSFORMER_2180.transform(longitudes, latitudes)
 
     return xs, ys
