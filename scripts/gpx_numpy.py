@@ -228,3 +228,93 @@ def frechet_distance_np(
                 )
 
     return float(np.sqrt(ca[n - 1, m - 1]))
+
+def segment_durations_np(
+    latitudes,
+    longitudes,
+    times,
+    boundaries,
+):
+    distances = haversine_distance_np(
+        latitudes[:-1],
+        longitudes[:-1],
+        latitudes[1:],
+        longitudes[1:],
+    )
+
+    cumulative = np.empty(len(latitudes), dtype=np.float64)
+    cumulative[0] = 0.0
+    cumulative[1:] = np.cumsum(distances)
+
+    boundary_times = np.interp(
+        boundaries,
+        cumulative,
+        times,
+    )
+
+    return boundary_times[1:] - boundary_times[:-1]
+
+
+def compare_segment_speeds_np(
+    reference_latitudes,
+    reference_longitudes,
+    reference_times,
+    runner_latitudes,
+    runner_longitudes,
+    runner_times,
+    segment_length_m=500.0,
+):
+    reference_distance = haversine_total_distance_np(
+        reference_latitudes,
+        reference_longitudes,
+    )
+
+    runner_distance = haversine_total_distance_np(
+        runner_latitudes,
+        runner_longitudes,
+    )
+
+    common_distance = min(reference_distance, runner_distance)
+
+    boundaries = np.arange(
+        0.0,
+        common_distance,
+        segment_length_m,
+        dtype=np.float64,
+    )
+
+    boundaries = np.append(boundaries, common_distance)
+
+    reference_durations = segment_durations_np(
+        reference_latitudes,
+        reference_longitudes,
+        reference_times,
+        boundaries,
+    )
+
+    runner_durations = segment_durations_np(
+        runner_latitudes,
+        runner_longitudes,
+        runner_times,
+        boundaries,
+    )
+
+    segments_count = min(
+        len(reference_durations),
+        len(runner_durations),
+    )
+
+    segment_distances = (
+        boundaries[1:segments_count + 1]
+        - boundaries[:segments_count]
+    )
+
+    speed_ratios = (
+        reference_durations[:segments_count]
+        / runner_durations[:segments_count]
+    )
+
+    return float(
+        np.sum(speed_ratios * segment_distances)
+        / np.sum(segment_distances)
+    )

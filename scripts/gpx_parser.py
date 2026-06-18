@@ -1,5 +1,12 @@
+import datetime
 import xml.etree.ElementTree as ET
 import numpy as np
+
+
+def parse_gpx_time(value):
+    return datetime.datetime.fromisoformat(
+        value.replace("Z", "+00:00")
+    ).timestamp()
 
 
 def parser_py(file):
@@ -14,25 +21,30 @@ def parser_py(file):
     latitudes = []
     longitudes = []
     elevations = []
+    times = []
 
     for trkpt in trackpoints:
         lat_str = trkpt.get("lat")
         lon_str = trkpt.get("lon")
         ele_elem = trkpt.find("gpx:ele", ns)
+        time_elem = trkpt.find("gpx:time", ns)
 
         if (
             lat_str is None
             or lon_str is None
             or ele_elem is None
             or not ele_elem.text
+            or time_elem is None
+            or not time_elem.text
         ):
             continue
 
         latitudes.append(float(lat_str))
         longitudes.append(float(lon_str))
         elevations.append(float(ele_elem.text))
+        times.append(parse_gpx_time(time_elem.text))
 
-    return latitudes, longitudes, elevations
+    return latitudes, longitudes, elevations, times
 
 
 def parser_np(file):
@@ -49,6 +61,7 @@ def parser_np(file):
     latitudes = np.empty(n, dtype=np.float64)
     longitudes = np.empty(n, dtype=np.float64)
     elevations = np.empty(n, dtype=np.float64)
+    times = np.empty(n, dtype=np.float64)
 
     i = 0
 
@@ -56,19 +69,23 @@ def parser_np(file):
         lat_str = trkpt.get("lat")
         lon_str = trkpt.get("lon")
         ele_elem = trkpt.find("gpx:ele", ns)
+        time_elem = trkpt.find("gpx:time", ns)
 
         if (
             lat_str is None
             or lon_str is None
             or ele_elem is None
             or not ele_elem.text
+            or time_elem is None
+            or not time_elem.text
         ):
             continue
 
         latitudes[i] = float(lat_str)
         longitudes[i] = float(lon_str)
         elevations[i] = float(ele_elem.text)
+        times[i] = parse_gpx_time(time_elem.text)
 
         i += 1
 
-    return latitudes[:i], longitudes[:i], elevations[:i]
+    return latitudes[:i], longitudes[:i], elevations[:i], times[:i]

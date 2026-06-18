@@ -334,3 +334,107 @@ def frechet_distance_numba(
             runner_ys,
         )
     )
+
+
+@njit
+def segment_durations_numba(
+    latitudes,
+    longitudes,
+    times,
+    boundaries,
+):
+    distances = np.empty(len(latitudes) - 1, dtype=np.float64)
+
+    for i in range(1, len(latitudes)):
+        distances[i - 1] = haversine_distance_numba(
+            latitudes[i - 1],
+            longitudes[i - 1],
+            latitudes[i],
+            longitudes[i],
+        )
+
+    cumulative = np.empty(len(latitudes), dtype=np.float64)
+    cumulative[0] = 0.0
+    cumulative[1:] = np.cumsum(distances)
+
+    boundary_times = np.interp(
+        boundaries,
+        cumulative,
+        times,
+    )
+
+    return boundary_times[1:] - boundary_times[:-1]
+
+
+@njit
+def compare_segment_speeds_numba(
+    reference_latitudes,
+    reference_longitudes,
+    reference_times,
+    runner_latitudes,
+    runner_longitudes,
+    runner_times,
+    segment_length_m=500.0,
+):
+    reference_distance = haversine_total_distance_numba(
+        reference_latitudes,
+        reference_longitudes,
+    )
+
+    runner_distance = haversine_total_distance_numba(
+        runner_latitudes,
+        runner_longitudes,
+    )
+
+    common_distance = min(reference_distance, runner_distance)
+
+    full_segments = int(common_distance // segment_length_m)
+    last_boundary = full_segments * segment_length_m
+
+    boundaries_count = full_segments + 1
+
+    if last_boundary < common_distance:
+        boundaries_count += 1
+
+    boundaries = np.empty(boundaries_count, dtype=np.float64)
+
+    for i in range(full_segments + 1):
+        boundaries[i] = i * segment_length_m
+
+    if last_boundary < common_distance:
+        boundaries[boundaries_count - 1] = common_distance
+
+    reference_durations = segment_durations_numba(
+        reference_latitudes,
+        reference_longitudes,
+        reference_times,
+        boundaries,
+    )
+
+    runner_durations = segment_durations_numba(
+        runner_latitudes,
+        runner_longitudes,
+        runner_times,
+        boundaries,
+    )
+
+    segments_count = min(
+        len(reference_durations),
+        len(runner_durations),
+    )
+
+    total_weighted_speed_ratio = 0.0
+    total_distance = 0.0
+
+    for i in range(segments_count):
+        segment_distance = boundaries[i + 1] - boundaries[i]
+
+        speed_ratio = (
+            reference_durations[i]
+            / runner_durations[i]
+        )
+
+        total_weighted_speed_ratio += speed_ratio * segment_distance
+        total_distance += segment_distance
+
+    return total_weighted_speed_ratio / total_distance
