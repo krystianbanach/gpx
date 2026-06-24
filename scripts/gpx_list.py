@@ -348,23 +348,44 @@ def compare_segment_speeds(
         boundaries,
     )
 
-    segments_count = min(
-        len(reference_durations),
-        len(runner_durations),
-    )
+    segments_count = min(len(reference_durations), len(runner_durations))
 
     total_weighted_speed_ratio = 0.0
+    total_weighted_speed_ratio_square = 0.0
     total_distance = 0.0
+
+    max_speed_ratio = 0.0
+    min_speed_ratio = 0.0
 
     for i in range(segments_count):
         segment_distance = boundaries[i + 1] - boundaries[i]
-
-        speed_ratio = (
-            reference_durations[i]
-            / runner_durations[i]
-        )
+        speed_ratio = reference_durations[i] / runner_durations[i]
 
         total_weighted_speed_ratio += speed_ratio * segment_distance
+        total_weighted_speed_ratio_square += (
+            speed_ratio * speed_ratio * segment_distance
+        )
         total_distance += segment_distance
 
-    return total_weighted_speed_ratio / total_distance
+        if i == 0 or speed_ratio > max_speed_ratio:
+            max_speed_ratio = speed_ratio
+
+        if i == 0 or speed_ratio < min_speed_ratio:
+            min_speed_ratio = speed_ratio
+
+    mean_speed_ratio = total_weighted_speed_ratio / total_distance
+
+    variance_speed_ratio = (
+        total_weighted_speed_ratio_square / total_distance
+        - mean_speed_ratio * mean_speed_ratio
+    )
+
+    std_speed_ratio = variance_speed_ratio ** 0.5
+
+    return (
+        segments_count,
+        mean_speed_ratio,
+        max_speed_ratio,
+        min_speed_ratio,
+        std_speed_ratio,
+    )

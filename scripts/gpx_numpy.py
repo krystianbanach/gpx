@@ -299,10 +299,7 @@ def compare_segment_speeds_np(
         boundaries,
     )
 
-    segments_count = min(
-        len(reference_durations),
-        len(runner_durations),
-    )
+    segments_count = min(len(reference_durations), len(runner_durations))
 
     segment_distances = (
         boundaries[1:segments_count + 1]
@@ -314,7 +311,25 @@ def compare_segment_speeds_np(
         / runner_durations[:segments_count]
     )
 
-    return float(
+    total_distance = np.sum(segment_distances)
+
+    mean_speed_ratio = (
         np.sum(speed_ratios * segment_distances)
-        / np.sum(segment_distances)
+        / total_distance
+    )
+
+    variance_speed_ratio = (
+        np.sum(speed_ratios * speed_ratios * segment_distances)
+        / total_distance
+        - mean_speed_ratio * mean_speed_ratio
+    )
+
+    std_speed_ratio = np.sqrt(variance_speed_ratio)
+
+    return (
+        int(segments_count),
+        float(mean_speed_ratio),
+        float(np.max(speed_ratios)),
+        float(np.min(speed_ratios)),
+        float(std_speed_ratio),
     )
